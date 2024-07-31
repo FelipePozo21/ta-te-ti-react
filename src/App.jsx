@@ -29,32 +29,55 @@ const WINNER_COMBOS = [
 
 
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null))
+  const [board, setBoard] = useState(() => {
+    return Array(9).fill(null)
+  })
   const [turn, setTurn] = useState(TURN.X)
-  
+  const [winner, setWinner] = useState(null)
+
   const uploadBoard = (index) => {
-    checkWinner()
+    if(winner || board[index]) {
+      return 
+    }
     const newBoard = [...board]
     newBoard[index] = turn
     setBoard(newBoard)
-
+    
     const nextTurn = turn === TURN.X ? TURN.O : TURN.X
-
+    const newWinner = checkWinner(newBoard)
+    
+    if(newWinner) {
+      setWinner(() => {return newWinner})
+    } else if(checkEndGame(newBoard)) {
+      setWinner(false)
+    }
     setTurn(nextTurn)
+
   }
 
-  const checkWinner = (index) => {
-    const [a,b,c] = WINNER_COMBOS
-    
+  const checkEndGame = (board) => board.every(square => square !== null)
+
+  const checkWinner = (board) => {  
     for(const check of WINNER_COMBOS) {
-      if(check[a] === board[index] &&
-        check[a] === check[b] &&
-        check[b] === check[c] 
+      const [a,b,c] = check
+      if(board[a] &&
+        board[a] === board[b] &&
+        board[b] === board[c] 
       ) {
-        console.log('win')
-      }
+        return board[a]
+      } 
     }
   }
+
+  const reset = () => {
+    setBoard(() => {
+      return Array(9).fill(null)
+    })
+    setTurn(TURN.X)
+    setWinner(null)
+  }
+
+  
 
   return (
     <main className="board">
@@ -73,6 +96,28 @@ function App() {
        <Square isSelected={turn === TURN.X ? true : false}>{TURN.X}</Square>
        <Square isSelected={turn === TURN.O ? true : false}>{TURN.O}</Square>
       </section>
+       {winner !== null ? (
+        <section className="winner">
+         <div className="text">
+          {winner !== false ? (
+            <div>
+              <h2>el ganador es:</h2>
+              <header className="win">
+                <Square>{winner}</Square>
+              </header>
+            </div>
+          ) : 
+            <div>
+              <h2>Empate</h2>
+            </div>
+          }
+
+        <footer>
+          <button onClick={reset}>Reset</button>
+        </footer>
+       </div>
+      </section>
+       ) : ''}
     </main>
   )
 }
